@@ -43,7 +43,6 @@ def login_user(request):
             "details": "error"
         }, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def check_user(request):
