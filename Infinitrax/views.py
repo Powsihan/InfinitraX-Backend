@@ -6,7 +6,56 @@ from Infinitrax.serializers import CategorySerializer
 from Infinitrax.models import Category
 from Infinitrax.serializers import BrandSerializer
 from Infinitrax.models import Brand
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import AuthenticationFailed
+from knox.auth import AuthToken
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
 
+@api_view(['POST'])
+def login_user(request):
+    try:
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        user = get_user_model().objects.filter(username=username).first()
+
+        if user is None:
+            raise AuthenticationFailed("User not found")
+
+        if not user.check_password(password):
+            raise AuthenticationFailed("Incorrect password")
+
+        _, token = AuthToken.objects.create(user)
+        user.is_active = True
+        user.save()
+        return Response({
+            'user_info': {
+                'username': user.username,
+                'password': user.password
+            },
+            'token': token
+        }, status=status.HTTP_200_OK)
+    except KeyError:
+        return Response({
+            "details": "error"
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def check_user(request):
+    try:
+        return Response({
+            "details": "Token is valid"
+        }, status=status.HTTP_200_OK)
+    except KeyError:
+        return Response({
+            "details": "Token is invalid"
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
 @csrf_exempt
 def categoryApi(request,id=0):
     if request.method=='GET':
