@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import re_path as url
 from Infinitrax import views
-
+import knox.views
 
 urlpatterns = [
     url(r'^category$',views.categoryApi),
@@ -27,6 +27,12 @@ urlpatterns = [
     url(r'^brand$',views.brandApi),
     url(r'^brand$',views.brandApi),
     url(r'^brand/([0-9]+)$',views.brandApi),
+    url(r'^attribute$',views.attributeApi),
+    url(r'^attribute$',views.attributeApi),
+    url(r'^attribute/([0-9]+)$',views.attributeApi),
     path('admin/', admin.site.urls),
+    path('login/', views.login_user, name='login'),
+    path('logout/', knox.views.LogoutView.as_view(), name='logout'),
+    path('check/', views.check_user, name='check token')
 ]
 
