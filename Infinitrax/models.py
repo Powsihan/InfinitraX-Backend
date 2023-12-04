@@ -11,4 +11,8 @@ class Category(models.Model):
 class Brand(models.Model):
     brand = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
+
+class Attribute(models.Model):
+    attribute = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
         
