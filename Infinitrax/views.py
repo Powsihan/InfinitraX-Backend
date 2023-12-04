@@ -6,6 +6,8 @@ from Infinitrax.serializers import CategorySerializer
 from Infinitrax.models import Category
 from Infinitrax.serializers import BrandSerializer
 from Infinitrax.models import Brand
+from Infinitrax.models import Attribute
+from Infinitrax.serializers import AttributeSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed
 from knox.auth import AuthToken
@@ -105,4 +107,30 @@ def brandApi(request,id=0):
     elif request.method=='DELETE':
         brand=Brand.objects.get(id=id)
         brand.delete()
+        return JsonResponse("Deleted Successfully",safe=False)
+
+@csrf_exempt
+def attributeApi(request,id=0):
+    if request.method=='GET':
+        attribute = Attribute.objects.all()
+        attribute_serializer=AttributeSerializer(attribute,many=True)
+        return JsonResponse(attribute_serializer.data,safe=False)
+    elif request.method=='POST':
+        attribute_data=JSONParser().parse(request)
+        attribute_serializer=AttributeSerializer(data=attribute_data)
+        if attribute_serializer.is_valid():
+            attribute_serializer.save()
+            return JsonResponse("Added Successfully",safe=False)
+        return JsonResponse("Failed to Add",safe=False)
+    elif request.method=='PUT':
+        attribute_data=JSONParser().parse(request)
+        attribute=Attribute.objects.get(id=id)
+        attribute_serializer=AttributeSerializer(attribute,data=attribute_data)
+        if attribute_serializer.is_valid():
+            attribute_serializer.save()
+            return JsonResponse("Updated Successfully",safe=False)
+        return JsonResponse("Failed to Update")
+    elif request.method=='DELETE':
+        attribute=Attribute.objects.get(id=id)
+        attribute.delete()
         return JsonResponse("Deleted Successfully",safe=False)
