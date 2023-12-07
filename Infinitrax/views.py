@@ -8,6 +8,10 @@ from Infinitrax.serializers import BrandSerializer
 from Infinitrax.models import Brand
 from Infinitrax.models import Attribute
 from Infinitrax.serializers import AttributeSerializer
+from Infinitrax.serializers import ProductSerializer
+from Infinitrax.models import Product
+from Infinitrax.serializers import InventorySerializer
+from Infinitrax.models import Inventory
 from Infinitrax.models import User
 from Infinitrax.serializers import UserSerializer
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
@@ -160,3 +164,88 @@ def get_user(request):
         return Response({
             "error": "An error occurred"
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+# @csrf_exempt
+# def productApi(request,id=0):
+#     if request.method=='GET':
+#         product = Product.objects.all()
+#         product_serializer=ProductSerializer(product,many=True)
+#         return JsonResponse(product_serializer.data,safe=False)
+#     elif request.method=='POST':
+#         product_data=JSONParser().parse(request)
+#         product_serializer=ProductSerializer(data=product_data)
+#         if product_serializer.is_valid():
+#             product_serializer.save()
+#             return JsonResponse("Added Successfully",safe=False)
+#         return JsonResponse("Failed to Add",safe=False)
+#     elif request.method=='PUT':
+#         product_data=JSONParser().parse(request)
+#         product=Product.objects.get(id=id)
+#         product_serializer=ProductSerializer(product,data=product_data)
+#         if product_serializer.is_valid():
+#             product_serializer.save()
+#             return JsonResponse("Updated Successfully",safe=False)
+#         return JsonResponse("Failed to Update")
+#     elif request.method=='DELETE':
+#         product=Product.objects.get(id=id)
+#         product.delete()
+#         return JsonResponse("Deleted Successfully",safe=False)        
+
+
+@csrf_exempt
+def productApi(request, id=0):
+    if request.method == 'GET':
+        product = Product.objects.all()
+        product_serializer = ProductSerializer(product, many=True)
+        return JsonResponse(product_serializer.data, safe=False)
+
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        product_serializer = ProductSerializer(data=data)
+
+        if product_serializer.is_valid():
+            product = product_serializer.save()
+            
+            if 'inventory' in data:
+                inventory_data = data['inventory']
+                inventory_data['product'] = product.serialno  
+                inventory_serializer = InventorySerializer(data=inventory_data)
+
+                if inventory_serializer.is_valid():
+                    inventory_serializer.save()
+                    return JsonResponse("Product and Inventory Added Successfully", safe=False)
+                else:
+                    product.delete() 
+                    return JsonResponse(inventory_serializer.errors, status=400)
+
+            return JsonResponse("Product Added Successfully", safe=False)
+        return JsonResponse(product_serializer.errors, status=400)
+
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        product = Product.objects.get(id=id)
+        product_serializer = ProductSerializer(product, data=data)
+
+        if product_serializer.is_valid():
+            product_serializer.save()
+
+            if 'inventory' in data:
+                inventory_data = data['inventory']
+                inventory = Inventory.objects.get(product=product.serialno)
+                inventory_serializer = InventorySerializer(inventory, data=inventory_data)
+
+                if inventory_serializer.is_valid():
+                    inventory_serializer.save()
+                    return JsonResponse("Product and Inventory Updated Successfully", safe=False)
+                else:
+                    return JsonResponse(inventory_serializer.errors, status=400)
+
+            return JsonResponse("Product Updated Successfully", safe=False)
+        return JsonResponse(product_serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        product = Product.objects.get(id=id)
+        product.delete()
+        return JsonResponse("Deleted Successfully", safe=False)
