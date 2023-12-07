@@ -193,13 +193,28 @@ def get_user(request):
 #         product.delete()
 #         return JsonResponse("Deleted Successfully",safe=False)        
 
-
+@api_view(['GET', 'POST'])
 @csrf_exempt
 def productApi(request, id=0):
     if request.method == 'GET':
-        product = Product.objects.all()
-        product_serializer = ProductSerializer(product, many=True)
-        return JsonResponse(product_serializer.data, safe=False)
+        if id:
+            try:
+                product = Product.objects.get(id=id)
+                product_serializer = ProductSerializer(product)
+                inventory = Inventory.objects.filter(product=product.serialno)
+                inventory_serializer = InventorySerializer(inventory, many=True)
+                response_data = {
+                    'product': product_serializer.data,
+                    'inventory': inventory_serializer.data
+                }
+                return Response(response_data)
+            except Product.DoesNotExist:
+                return Response({'message': 'Product not found'}, status=404)
+
+        else:
+            products = Product.objects.all()
+            product_serializer = ProductSerializer(products, many=True)
+            return Response(product_serializer.data)
 
     elif request.method == 'POST':
         data = JSONParser().parse(request)
@@ -207,20 +222,23 @@ def productApi(request, id=0):
 
         if product_serializer.is_valid():
             product = product_serializer.save()
-            
-            if 'inventory' in data:
-                inventory_data = data['inventory']
-                inventory_data['product'] = product.serialno  
-                inventory_serializer = InventorySerializer(data=inventory_data)
 
-                if inventory_serializer.is_valid():
-                    inventory_serializer.save()
-                    return JsonResponse("Product and Inventory Added Successfully", safe=False)
-                else:
-                    product.delete() 
-                    return JsonResponse(inventory_serializer.errors, status=400)
+            if 'inventory' in data and isinstance(data['inventory'], list):
+                inventory_data_list = data['inventory']
+                for inventory_data in inventory_data_list:
+                    inventory_data['product'] = product.serialno  # Linking to the Product using serialno
+                    inventory_serializer = InventorySerializer(data=inventory_data)
+
+                    if inventory_serializer.is_valid():
+                        inventory_serializer.save()
+                    else:
+                        product.delete()  # Rollback if inventory creation fails
+                        return JsonResponse(inventory_serializer.errors, status=400)
+
+                return JsonResponse("Product and Inventory Added Successfully", safe=False)
 
             return JsonResponse("Product Added Successfully", safe=False)
+
         return JsonResponse(product_serializer.errors, status=400)
 
     elif request.method == 'PUT':
