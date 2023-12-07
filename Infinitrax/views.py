@@ -8,13 +8,18 @@ from Infinitrax.serializers import BrandSerializer
 from Infinitrax.models import Brand
 from Infinitrax.models import Attribute
 from Infinitrax.serializers import AttributeSerializer
-from rest_framework.decorators import api_view, permission_classes
+from Infinitrax.models import User
+from Infinitrax.serializers import UserSerializer
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.exceptions import AuthenticationFailed
 from knox.auth import AuthToken
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
+from knox.auth import AuthToken, TokenAuthentication
+from django.core.exceptions import ObjectDoesNotExist
+
 
 @api_view(['POST'])
 def login_user(request):
@@ -134,3 +139,24 @@ def attributeApi(request,id=0):
         attribute=Attribute.objects.get(id=id)
         attribute.delete()
         return JsonResponse("Deleted Successfully",safe=False)
+    
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+def get_user(request):
+    try:
+        user = request.user
+        user_data = {
+            'username': user.username,
+            'email': user.email,
+        }
+        return Response(user_data)
+
+    except User.DoesNotExist:
+        return Response({
+            "error": "User not found"
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        return Response({
+            "error": "An error occurred"
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
