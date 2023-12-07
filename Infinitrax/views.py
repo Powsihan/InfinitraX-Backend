@@ -214,7 +214,13 @@ def productApi(request, id=0):
         else:
             products = Product.objects.all()
             product_serializer = ProductSerializer(products, many=True)
-            return Response(product_serializer.data)
+            inventory = Inventory.objects.all()
+            inventory_serializer = InventorySerializer(inventory, many=True)
+            response_data = {
+                'products': product_serializer.data,
+                'inventory': inventory_serializer.data
+            }
+            return Response(response_data)
 
     elif request.method == 'POST':
         data = JSONParser().parse(request)
@@ -226,13 +232,13 @@ def productApi(request, id=0):
             if 'inventory' in data and isinstance(data['inventory'], list):
                 inventory_data_list = data['inventory']
                 for inventory_data in inventory_data_list:
-                    inventory_data['product'] = product.serialno  # Linking to the Product using serialno
+                    inventory_data['product'] = product.serialno  
                     inventory_serializer = InventorySerializer(data=inventory_data)
 
                     if inventory_serializer.is_valid():
                         inventory_serializer.save()
                     else:
-                        product.delete()  # Rollback if inventory creation fails
+                        product.delete() 
                         return JsonResponse(inventory_serializer.errors, status=400)
 
                 return JsonResponse("Product and Inventory Added Successfully", safe=False)
