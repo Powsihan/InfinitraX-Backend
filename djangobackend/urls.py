@@ -33,6 +33,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', views.login_user, name='login'),
     path('logout/', knox.views.LogoutView.as_view(), name='logout'),
-    path('check/', views.check_user, name='check token')
+    path('check/', views.check_user, name='check token'),
+    path('user/', views.get_user, name='get user details'),
 ]
 
