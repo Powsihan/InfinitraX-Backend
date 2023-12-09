@@ -168,7 +168,7 @@ def get_user(request):
 
        
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @csrf_exempt
 def productApi(request, id=0):
     if request.method == 'GET':
@@ -245,20 +245,13 @@ def productApi(request, id=0):
         return JsonResponse(product_serializer.errors, status=400)
      
     elif request.method == 'DELETE':
-     try:
-        serialno = request.data.get('serialno')
-        product = Product.objects.get(serialno=serialno)
-
-        # Check if the product has associated inventory entries
-        if Inventory.objects.filter(product=serialno).exists():
-            inventory_entries = Inventory.objects.filter(product=serialno)
-            inventory_entries.delete()
-
-        # Delete the product
-        product.delete()
-
-        return JsonResponse("Deleted Successfully", safe=False)
-     except Product.DoesNotExist:
-        return JsonResponse({'message': 'Product not found'}, status=404)
+        try:
+            product = Product.objects.get(id=id)
+            Inventory.objects.filter(product=product.serialno).delete()
+            product.delete()  
+            return JsonResponse("Product and associated inventory deleted successfully", safe=False)
+        except Product.DoesNotExist:
+            return JsonResponse({'message': 'Product not found'}, status=404)
+  
  
 
