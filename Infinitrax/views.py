@@ -166,32 +166,7 @@ def get_user(request):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-# @csrf_exempt
-# def productApi(request,id=0):
-#     if request.method=='GET':
-#         product = Product.objects.all()
-#         product_serializer=ProductSerializer(product,many=True)
-#         return JsonResponse(product_serializer.data,safe=False)
-#     elif request.method=='POST':
-#         product_data=JSONParser().parse(request)
-#         product_serializer=ProductSerializer(data=product_data)
-#         if product_serializer.is_valid():
-#             product_serializer.save()
-#             return JsonResponse("Added Successfully",safe=False)
-#         return JsonResponse("Failed to Add",safe=False)
-#     elif request.method=='PUT':
-#         product_data=JSONParser().parse(request)
-#         product=Product.objects.get(id=id)
-#         product_serializer=ProductSerializer(product,data=product_data)
-#         if product_serializer.is_valid():
-#             product_serializer.save()
-#             return JsonResponse("Updated Successfully",safe=False)
-#         return JsonResponse("Failed to Update")
-#     elif request.method=='DELETE':
-#         product=Product.objects.get(id=id)
-#         product.delete()
-#         return JsonResponse("Deleted Successfully",safe=False)        
+       
 
 @api_view(['GET', 'POST'])
 @csrf_exempt
@@ -268,8 +243,22 @@ def productApi(request, id=0):
 
             return JsonResponse("Product Updated Successfully", safe=False)
         return JsonResponse(product_serializer.errors, status=400)
-
+     
     elif request.method == 'DELETE':
-        product = Product.objects.get(id=id)
+     try:
+        serialno = request.data.get('serialno')
+        product = Product.objects.get(serialno=serialno)
+
+        # Check if the product has associated inventory entries
+        if Inventory.objects.filter(product=serialno).exists():
+            inventory_entries = Inventory.objects.filter(product=serialno)
+            inventory_entries.delete()
+
+        # Delete the product
         product.delete()
+
         return JsonResponse("Deleted Successfully", safe=False)
+     except Product.DoesNotExist:
+        return JsonResponse({'message': 'Product not found'}, status=404)
+ 
+

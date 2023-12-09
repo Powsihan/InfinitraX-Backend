@@ -15,24 +15,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.urls import re_path as url
 from Infinitrax import views
 import knox.views
 
 urlpatterns = [
-    url(r'^category$',views.categoryApi),
-    url(r'^category$',views.categoryApi),
-    url(r'^category/([0-9]+)$',views.categoryApi),
-    url(r'^brand$',views.brandApi),
-    url(r'^brand$',views.brandApi),
-    url(r'^brand/([0-9]+)$',views.brandApi),
-    url(r'^attribute$',views.attributeApi),
-    url(r'^attribute$',views.attributeApi),
-    url(r'^attribute/([0-9]+)$',views.attributeApi),
-    url(r'^product$',views.productApi),
-    url(r'^product$',views.productApi),
-    url(r'^product/([0-9]+)$',views.productApi),
+    re_path(r'^category$', views.categoryApi),
+    re_path(r'^category/([0-9]+)$', views.categoryApi),
+    re_path(r'^brand$', views.brandApi),
+    re_path(r'^brand/([0-9]+)$', views.brandApi),
+    re_path(r'^attribute$', views.attributeApi),
+    re_path(r'^attribute/([0-9]+)$', views.attributeApi),
+    re_path(r'^product$', views.productApi),
+    re_path(r'^product/([a-zA-Z0-9]+)$', views.productApi), 
     path('admin/', admin.site.urls),
     path('login/', views.login_user, name='login'),
     path('logout/', knox.views.LogoutView.as_view(), name='logout'),
