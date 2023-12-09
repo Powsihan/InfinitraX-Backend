@@ -223,25 +223,34 @@ def productApi(request, id=0):
         return JsonResponse(product_serializer.errors, status=400)
 
     elif request.method == 'PUT':
+        try:
+            product = Product.objects.get(id=id)
+        except Product.DoesNotExist:
+            return JsonResponse({'message': 'Product not found'}, status=404)
+
         data = JSONParser().parse(request)
-        product = Product.objects.get(id=id)
         product_serializer = ProductSerializer(product, data=data)
 
         if product_serializer.is_valid():
             product_serializer.save()
 
             if 'inventory' in data:
-                inventory_data = data['inventory']
-                inventory = Inventory.objects.get(product=product.serialno)
-                inventory_serializer = InventorySerializer(inventory, data=inventory_data)
+                inventory_data_list = data['inventory']
 
-                if inventory_serializer.is_valid():
-                    inventory_serializer.save()
-                    return JsonResponse("Product and Inventory Updated Successfully", safe=False)
-                else:
-                    return JsonResponse(inventory_serializer.errors, status=400)
+                for inventory_data in inventory_data_list:
+                    inventory = Inventory.objects.get(id=inventory_data.get('id'))
 
+                    inventory_serializer = InventorySerializer(inventory, data=inventory_data)
+
+                    if inventory_serializer.is_valid():
+                        inventory_serializer.save()
+                    else:
+                        return JsonResponse(inventory_serializer.errors, status=400)
+
+                return JsonResponse("Product and Inventory Updated Successfully", safe=False)
+                
             return JsonResponse("Product Updated Successfully", safe=False)
+
         return JsonResponse(product_serializer.errors, status=400)
      
     elif request.method == 'DELETE':
