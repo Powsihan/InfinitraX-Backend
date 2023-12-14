@@ -261,6 +261,35 @@ def productApi(request, id=0):
             return JsonResponse("Product and associated inventory deleted successfully", safe=False)
         except Product.DoesNotExist:
             return JsonResponse({'message': 'Product not found'}, status=404)
-  
  
+ 
+@api_view(['POST'])
+def AddInventoryApi(request):
+    if request.method == 'POST':
+        data = JSONParser().parse(request)
+        if 'serialno' not in data:
+            return JsonResponse({'error': 'Serialno is required to add inventory'}, status=400)
+        try:
+            product = Product.objects.get(serialno=data['serialno'])
+        except Product.DoesNotExist:
+            return JsonResponse({'error': 'Product with the provided serialno does not exist'}, status=400)
+        if 'inventory' in data and isinstance(data['inventory'], list):
+            inventory_data_list = data['inventory']
+            for inventory_data in inventory_data_list:
+                if isinstance(inventory_data, dict):
+                    inventory_data['product'] = product.serialno
+                    inventory_serializer = InventorySerializer(data=inventory_data)
+
+                    if inventory_serializer.is_valid():
+                        inventory_serializer.save()
+                    else:
+                        return JsonResponse(inventory_serializer.errors, status=400)
+                else:
+                    return JsonResponse({'error': 'Invalid format for inventory_data'}, status=400)
+
+            return JsonResponse("Inventory Added Successfully", safe=False)
+
+        return JsonResponse("No valid inventory data provided", status=400)
+
+
 
