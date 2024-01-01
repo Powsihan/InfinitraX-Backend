@@ -290,6 +290,44 @@ def AddInventoryApi(request):
             return JsonResponse("Inventory Added Successfully", safe=False)
 
         return JsonResponse("No valid inventory data provided", status=400)
+    
+
+
+@csrf_exempt
+def inventoryApi(request, id=0):
+    if request.method == 'GET':
+        inventories = Inventory.objects.all()
+        inventory_serializer = InventorySerializer(inventories, many=True)
+        return JsonResponse(inventory_serializer.data, safe=False)
+    elif request.method == 'PUT':
+        inventory_data = JSONParser().parse(request)
+        try:
+            inventory = Inventory.objects.get(id=id)
+        except Inventory.DoesNotExist:
+            return JsonResponse({'message': 'Inventory not found'}, status=404)
+
+        inventory_serializer = InventorySerializer(inventory, data=inventory_data)
+        if inventory_serializer.is_valid():
+            inventory_serializer.save()
+            return JsonResponse("Updated Successfully", safe=False)
+        return JsonResponse(inventory_serializer.errors, status=400)
+    elif request.method == 'DELETE':
+        try:
+            inventory = Inventory.objects.get(id=id)
+        except Inventory.DoesNotExist:
+            return JsonResponse({'message': 'Inventory not found'}, status=404)
+
+        inventory.delete()
+        return JsonResponse("Deleted Successfully", safe=False)
+    else:
+        return JsonResponse({'message': 'Invalid HTTP method'}, status=405)
+        try:
+            product = Product.objects.get(id=id)
+            Inventory.objects.filter(product=product.serialno).delete()
+            product.delete()  
+            return JsonResponse("Product and associated inventory deleted successfully", safe=False)
+        except Product.DoesNotExist:
+            return JsonResponse({'message': 'Product not found'}, status=404)
 
 
 
