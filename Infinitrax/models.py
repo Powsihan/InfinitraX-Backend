@@ -25,9 +25,9 @@ class Product(models.Model):
     description = models.TextField()
 
 class Inventory(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, to_field='serialno')
-    attribute = models.CharField(max_length=255)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, to_field='serialno',null=True)
+    attribute = models.CharField(max_length=255,null=True)
     value = models.CharField(max_length=255)
-    price = models.IntegerField()
-    inventory = models.IntegerField()
-    taxrate = models.CharField(max_length=255)
+    price = models.IntegerField(null=True)
+    inventory = models.IntegerField(null=True)
+    taxrate = models.CharField(max_length=255,null=True)

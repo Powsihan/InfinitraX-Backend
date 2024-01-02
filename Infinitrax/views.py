@@ -294,23 +294,39 @@ def AddInventoryApi(request):
 
 
 @csrf_exempt
-def inventoryApi(request, id=0):
+def inventoryApi(request, id=6):
     if request.method == 'GET':
         inventories = Inventory.objects.all()
         inventory_serializer = InventorySerializer(inventories, many=True)
         return JsonResponse(inventory_serializer.data, safe=False)
     elif request.method == 'PUT':
-        inventory_data = JSONParser().parse(request)
+        
         try:
+            inventory_data = JSONParser().parse(request)
             inventory = Inventory.objects.get(id=id)
+            inventory_serializer = InventorySerializer(inventory, data=inventory_data)
+
+            if inventory_serializer.is_valid():
+                inventory_serializer.save()
+                return JsonResponse({'message': 'Inventory Added Successfully'}, status=200)
+            return JsonResponse({'message': 'Inventory not found'} , status = 400)
         except Inventory.DoesNotExist:
             return JsonResponse({'message': 'Inventory not found'}, status=404)
 
         inventory_serializer = InventorySerializer(inventory, data=inventory_data)
-        if inventory_serializer.is_valid():
-            inventory_serializer.save()
-            return JsonResponse("Updated Successfully", safe=False)
-        return JsonResponse(inventory_serializer.errors, status=400)
+    # elif id:
+    #         try:
+    #             inventory = Inventory.objects.get(id=id)
+    #             inventory_serializer = InventorySerializer(inventory)
+    #             inventory = Inventory.objects.filter(inventory=inventory.serialno)
+    #             inventory_serializer = InventorySerializer(inventory, many=True)
+    #             response_data = {
+    #                 'inventory': inventory_serializer.data,
+    #                 'inventory': inventory_serializer.data
+    #             }
+    #             return Response(response_data)
+    #         except Inventory.DoesNotExist:
+    #             return Response({'message': 'Inventory not found'}, status=404)
     elif request.method == 'DELETE':
         try:
             inventory = Inventory.objects.get(id=id)

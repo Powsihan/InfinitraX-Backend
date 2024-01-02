@@ -30,9 +30,9 @@ urlpatterns = [
     re_path(r'^product$', views.productApi),
     re_path(r'^product/([a-zA-Z0-9]+)$', views.productApi), 
     re_path(r'^inventory$', views.AddInventoryApi),
-    re_path(r'^inventory/([a-zA-Z0-9]+)$', views.AddInventoryApi), 
+    re_path(r'^inventory/([a-zA-Z0-9]+)$', views.inventoryApi), 
     re_path(r'^inventorydata$', views.inventoryApi),
-    re_path(r'^inventorydata/([a-zA-Z0-9]+)$', views.inventoryApi), 
+    re_path(r'^inventorydata/([a-zA-Z0-9]+)$', views.inventoryApi), # check this
     path('admin/', admin.site.urls),
     path('login/', views.login_user, name='login'),
     path('logout/', knox.views.LogoutView.as_view(), name='logout'),
