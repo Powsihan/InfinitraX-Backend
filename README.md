@@ -1,6 +1,6 @@
 <div align='center'>
 
-<img src=https://drive.google.com/file/d/15NGrVElM510eTnoaa1TUAzOxdmpiuWv3/view?usp=sharing alt="logo" width=150 height=150 />
+<img src="https://drive.google.com/file/d/15NGrVElM510eTnoaa1TUAzOxdmpiuWv3/view?usp=sharing" alt="logo" width=150 height=150 />
 
 <h1>Infinitrax</h1>
 <p>Our inventory management web application is built using ReactJS for the frontend and Django for the backend, with MySQL serving as the database. It implements CRUD operations for inventory items with robust validation, ensuring data integrity. User authentication is handled securely with login functionality utilizing session and cookie management. This ensures a seamless and secure user experience while managing inventory. The application provides a user-friendly interface for efficient inventory tracking and management</p>
